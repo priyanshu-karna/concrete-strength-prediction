@@ -1,68 +1,99 @@
-# Concrete Compressive Strength Prediction
+ï»¿# Concrete Compressive Strength Prediction
 
 A machine learning project where I try to predict concrete compressive strength (MPa) from its mix ingredients using linear regression.
 
-This is part of my personal ML learning journey — working through real datasets, building models from scratch, and figuring out what actually matters in the pipeline.
+Part of my personal ML learning journey â€” working through real datasets, building proper pipelines, and understanding what actually moves the needle.
 
 ---
 
 ## Dataset
 
-**Source**: UCI Machine Learning Repository — donated by Prof. I-Cheng Yeh (Chung-Hua University, Taiwan).
+**Source**: UCI Machine Learning Repository â€” donated by Prof. I-Cheng Yeh (Chung-Hua University, Taiwan).
 
-1030 samples. No missing values. 8 input features, 1 target.
+1030 samples, 8 input features, 1 target. The readme claimed no missing values â€” EDA found **25 duplicate rows**, which get dropped before training (clean set: 1005 rows).
 
 | Feature | Unit |
 |---|---|
-| Cement | kg/m³ |
-| Blast Furnace Slag | kg/m³ |
-| Fly Ash | kg/m³ |
-| Water | kg/m³ |
-| Superplasticizer | kg/m³ |
-| Coarse Aggregate | kg/m³ |
-| Fine Aggregate | kg/m³ |
+| Cement | kg/mÂ³ |
+| Blast Furnace Slag | kg/mÂ³ |
+| Fly Ash | kg/mÂ³ |
+| Water | kg/mÂ³ |
+| Superplasticizer | kg/mÂ³ |
+| Coarse Aggregate | kg/mÂ³ |
+| Fine Aggregate | kg/mÂ³ |
 | Age | days |
 | **Compressive Strength** *(target)* | MPa |
 
+### Target Distribution
+
+![Target Distribution](assets/target_distribution.png)
+
+### Feature Correlation
+
+![Correlation Heatmap](assets/correlation.png)
+
 ---
 
-## What I built
+## Scripts
+
+### `eda.py`
+Runs before anything else. Checks missing values, duplicate rows, plots feature distributions, correlation heatmap, and feature-vs-target scatter plots. Saves everything to `plots/`.
 
 ### `linear_regression.py`
-Baseline linear regression model. Straightforward pipeline:
-- 80/20 train-test split
-- StandardScaler for feature scaling
-- Evaluated on MAE, RMSE, and R²
-- Three plots saved: Actual vs Predicted, Residual plot, Feature Coefficients
+Baseline model â€” no feature engineering. Just the raw 8 features scaled and fed into `LinearRegression`.
 
-**Test set results:**
+**Pipeline**: EDA checks â†’ 80/20 split â†’ StandardScaler â†’ LinearRegression â†’ evaluate
 
 | Metric | Value |
 |---|---|
-| MAE | 7.745 MPa |
-| RMSE | 9.797 MPa |
-| R² | 0.6275 |
+| MAE | 8.896 MPa |
+| RMSE | 11.192 MPa |
+| RÂ² | 0.5801 |
 
-Cement and blast furnace slag came out as the strongest predictors. Water had the only negative coefficient — makes sense, too much water weakens the mix.
+### `linear_regression_feat_eng.py`
+Same pipeline but with two extra features derived from the raw data:
 
-R² of 0.63 isn't great, but it's expected. The dataset readme literally says strength is a *highly nonlinear* function of age and ingredients. Linear regression is a reasonable starting point, not the final answer.
+- **`wc_ratio`** = water / cement â€” a known physical indicator of strength in concrete science. Lower ratio means stronger mix.
+- **`log_age`** = log(1 + age) â€” age has diminishing returns on strength (gains fast early, plateaus later). The log transform captures that curve inside a linear model.
+
+| Metric | Baseline | Feature Eng. | Change |
+|---|---|---|---|
+| MAE | 8.896 MPa | **5.749 MPa** | -2.15 |
+| RMSE | 11.192 MPa | **7.442 MPa** | -3.75 |
+| RÂ² | 0.5801 | **0.8143** | +0.234 |
+
+### Actual vs Predicted
+
+![Actual vs Predicted](assets/actual_vs_predicted.png)
+
+### Feature Coefficients
+
+![Feature Coefficients](assets/feature_coefficients.png)
+
+`log_age` and `cement` came out as the top two predictors. `wc_ratio` has a negative coefficient â€” higher water-to-cement ratio means weaker concrete, which matches the physics exactly.
 
 ---
 
 ## Setup
 
 ```bash
-pip install numpy pandas scikit-learn matplotlib openpyxl
-python linear_regression.py
+pip install numpy pandas scikit-learn matplotlib seaborn openpyxl
 ```
 
-Plots are saved to the `plots/` folder.
+Run in order:
+```bash
+python eda.py
+python linear_regression.py
+python linear_regression_feat_eng.py
+```
+
+Plots from EDA and model runs save to `plots/`. README assets are in `assets/`.
 
 ---
 
-## What's next
+## What is next
 
-- Feature engineering: w/c ratio, log(age)
-- Try Random Forest and Gradient Boosting
+- Polynomial features
+- Random Forest and Gradient Boosting â€” this dataset is highly nonlinear
 - Cross-validation instead of a single train-test split
-- Compare all models side by side
+- Side-by-side model comparison table
