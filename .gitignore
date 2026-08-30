@@ -1,0 +1,9 @@
+# data and outputs
+*.xls
+*.xlsx
+plots/
+
+# python
+__pycache__/
+*.pyc
+.env
