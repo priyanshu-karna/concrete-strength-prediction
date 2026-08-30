@@ -1,6 +1,6 @@
 """
-Linear Regression model to predict concrete compressive strength (MPa).
-Dataset: 1030 samples, 8 input features, 1 output (compressive strength).
+Linear Regression with feature engineering on concrete compressive strength dataset.
+New features: w/c ratio (water/cement) and log(age).
 """
 
 import os
@@ -14,18 +14,16 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-df = pd.read_excel("Concrete_Data.xls")  # load the dataset
+df = pd.read_excel("Concrete_Data.xls")
 
-df.columns = [  # rename columns for readability
+df.columns = [
     "cement", "blast_furnace_slag", "fly_ash", "water",
     "superplasticizer", "coarse_aggregate", "fine_aggregate",
     "age", "compressive_strength",
 ]
 
-print("Shape:", df.shape)
-
 missing = df.isnull().sum()  # check for missing values
-print("\nMissing values:", missing[missing > 0].to_dict() if missing.any() else "None")
+print("Missing values:", missing[missing > 0].to_dict() if missing.any() else "None")
 
 dupes = df.duplicated().sum()  # check for duplicate rows
 print(f"Duplicate rows: {dupes}")
@@ -33,13 +31,18 @@ if dupes > 0:
     df = df.drop_duplicates().reset_index(drop=True)  # drop and reindex
     print(f"Shape after dropping duplicates: {df.shape}")
 
-print("\n", df.describe().round(2))
+# feature engineering
+df["wc_ratio"] = df["water"] / df["cement"]   # lower w/c ratio -> stronger concrete
+df["log_age"]  = np.log1p(df["age"])          # log(1+age) compresses the skewed age distribution
 
-X = df.drop(columns="compressive_strength")  # input features
-y = df["compressive_strength"]               # target variable
+print("Sample of engineered features:")
+print(df[["water", "cement", "wc_ratio", "age", "log_age"]].head())
+
+X = df.drop(columns="compressive_strength")
+y = df["compressive_strength"]
 
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42    # 80/20 split, fixed seed
+    X, y, test_size=0.2, random_state=42
 )
 
 scaler = StandardScaler()
@@ -56,7 +59,12 @@ mse  = mean_squared_error(y_test, y_pred)
 rmse = np.sqrt(mse)
 r2   = r2_score(y_test, y_pred)
 
-print("\n-- Model Evaluation --")
+print("\n-- Baseline (no feature engineering) --")
+print("  MAE  : 7.745 MPa")
+print("  RMSE : 9.797 MPa")
+print("  R2   : 0.6275")
+
+print("\n-- With Feature Engineering --")
 print(f"  MAE  : {mae:.3f} MPa")
 print(f"  MSE  : {mse:.3f}")
 print(f"  RMSE : {rmse:.3f} MPa")
@@ -73,7 +81,7 @@ print(coef_df.to_string(index=False))
 os.makedirs("plots", exist_ok=True)
 
 fig, axes = plt.subplots(1, 3, figsize=(18, 5))
-fig.suptitle("Linear Regression - Concrete Compressive Strength", fontsize=14)
+fig.suptitle("Linear Regression with Feature Engineering - Concrete Compressive Strength", fontsize=13)
 
 axes[0].scatter(y_test, y_pred, alpha=0.6, edgecolors="k", linewidths=0.3)
 lims = [min(y_test.min(), y_pred.min()), max(y_test.max(), y_pred.max())]
@@ -96,5 +104,5 @@ axes[2].set_xlabel("Coefficient (scaled)")
 axes[2].set_title("Feature Coefficients")
 
 plt.tight_layout()
-plt.savefig("plots/linear_regression_results.png", dpi=150)
-print("\nPlot saved to plots/linear_regression_results.png")
+plt.savefig("plots/linear_regression_feat_eng_results.png", dpi=150)
+print("\nPlot saved to plots/linear_regression_feat_eng_results.png")
