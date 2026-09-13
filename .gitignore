@@ -1,7 +1,6 @@
 # data and outputs
 *.xls
 *.xlsx
-plots/
 
 # python
 __pycache__/
