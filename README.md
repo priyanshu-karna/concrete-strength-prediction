@@ -24,13 +24,13 @@ Part of my personal ML learning journey — working through real datasets, build
 | Age | days |
 | **Compressive Strength** *(target)* | MPa |
 
-### Target Distribution
+### EDA Plots
 
-![Target Distribution](assets/target_distribution.png)
+![Feature Distributions](plots/eda_distributions.png)
 
-### Feature Correlation
+![Correlation Heatmap](plots/eda_correlation.png)
 
-![Correlation Heatmap](assets/correlation.png)
+![Feature vs Target](plots/eda_feature_vs_target.png)
 
 ---
 
@@ -50,6 +50,8 @@ Baseline model — no feature engineering. Just the raw 8 features scaled and fe
 | RMSE | 11.192 MPa |
 | R² | 0.5801 |
 
+![Linear Regression Results](plots/linear_regression_results.png)
+
 ### `linear_regression_feat_eng.py`
 Same pipeline but with two extra features derived from the raw data:
 
@@ -62,13 +64,7 @@ Same pipeline but with two extra features derived from the raw data:
 | RMSE | 11.192 MPa | **7.442 MPa** | -3.75 |
 | R² | 0.5801 | **0.8143** | +0.234 |
 
-### Actual vs Predicted
-
-![Actual vs Predicted](assets/actual_vs_predicted.png)
-
-### Feature Coefficients
-
-![Feature Coefficients](assets/feature_coefficients.png)
+![Linear Regression + Feature Engineering Results](plots/linear_regression_feat_eng_results.png)
 
 `log_age` and `cement` came out as the top two predictors. `wc_ratio` has a negative coefficient — higher water-to-cement ratio means weaker concrete, which matches the physics exactly.
 
@@ -109,6 +105,8 @@ XGBoost regressor with feature engineering and hyperparameter tuning via `GridSe
 
 `wc_ratio` is the single most important predictor — consistent with concrete physics (lower water-to-cement ratio = stronger mix).
 
+![XGBoost Results](plots/xgboost_results.png)
+
 ### `random_forest.py`
 Random Forest with the same feature engineering as XGBoost, tuned via `GridSearchCV` (5-fold CV, 24 combinations).
 
@@ -144,6 +142,8 @@ Random Forest with the same feature engineering as XGBoost, tuned via `GridSearc
 | others | ~20% |
 
 Random Forest spreads importance more evenly than XGBoost — both `age` and `log_age` rank, whereas XGBoost gave `log_age` zero weight and loaded `wc_ratio` at 48%. The ensemble still beats linear regression by a wide margin (RMSE 4.965 vs 11.192), but XGBoost's gradient boosting squeezes out another ~0.85 MPa improvement.
+
+![Random Forest Results](plots/random_forest_results.png)
 
 ---
 
