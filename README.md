@@ -179,15 +179,3 @@ python random_forest.py
 
 Plots from EDA and model runs save to `plots/`. README assets are in `assets/`.
 
----
-
-## What is next
-
-- [x] Linear Regression baseline
-- [x] Feature engineering (`wc_ratio`, `log_age`)
-- [x] XGBoost with hyperparameter tuning
-- [x] Random Forest with hyperparameter tuning
-- [x] Cross-validation (5-fold GridSearchCV)
-- [x] Side-by-side model comparison table
-- [ ] SHAP values for model explainability
-- [ ] Polynomial features on linear model
