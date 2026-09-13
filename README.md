@@ -1,6 +1,6 @@
-﻿# Concrete Compressive Strength Prediction
+# Concrete Compressive Strength Prediction
 
-A machine learning project where I try to predict concrete compressive strength (MPa) from its mix ingredients using linear regression.
+A machine learning project predicting concrete compressive strength (MPa) from mix ingredients. Models explored: Linear Regression, Linear Regression with Feature Engineering, and XGBoost.
 
 Part of my personal ML learning journey — working through real datasets, building proper pipelines, and understanding what actually moves the needle.
 
@@ -72,12 +72,62 @@ Same pipeline but with two extra features derived from the raw data:
 
 `log_age` and `cement` came out as the top two predictors. `wc_ratio` has a negative coefficient — higher water-to-cement ratio means weaker concrete, which matches the physics exactly.
 
+### `xgboost_model.py`
+XGBoost regressor with feature engineering and hyperparameter tuning via `GridSearchCV` (5-fold CV, 108 candidate combinations).
+
+**Pipeline**: deduplication → `wc_ratio` + `log_age` features → 80/20 split → XGBRegressor → GridSearchCV → evaluate
+
+**Best hyperparameters**
+
+| Parameter | Value |
+|---|---|
+| `n_estimators` | 400 |
+| `max_depth` | 5 |
+| `learning_rate` | 0.1 |
+| `subsample` | 0.8 |
+| `colsample_bytree` | 1.0 |
+
+**Evaluation**
+
+| Metric | Value |
+|---|---|
+| MAE | **2.539 MPa** |
+| RMSE | **4.124 MPa** |
+| R² | **0.9430** |
+| CV RMSE (5-fold) | 4.321 MPa |
+
+**Feature importances (gain)**
+
+| Feature | Importance |
+|---|---|
+| `wc_ratio` | 47.8% |
+| `age` | 16.9% |
+| `blast_furnace_slag` | 11.2% |
+| `superplasticizer` | 6.9% |
+| `fine_aggregate` | 5.3% |
+| others | ~8% |
+
+`wc_ratio` is the single most important predictor — consistent with concrete physics (lower water-to-cement ratio = stronger mix).
+
 ---
+
+## Overall Model Comparison
+
+| Model | MAE (MPa) | RMSE (MPa) | R² |
+|---|---|---|---|
+| Linear Regression | 8.896 | 11.192 | 0.5801 |
+| LR + Feature Engineering | 5.749 | 7.442 | 0.8143 |
+| **XGBoost (tuned)** | **2.539** | **4.124** | **0.9430** |
+
+XGBoost achieves a **63% reduction in RMSE** over the plain linear regression baseline.
+
+---
+
 
 ## Setup
 
 ```bash
-pip install numpy pandas scikit-learn matplotlib seaborn openpyxl
+pip install numpy pandas scikit-learn matplotlib seaborn openpyxl xgboost
 ```
 
 Run in order:
@@ -85,6 +135,7 @@ Run in order:
 python eda.py
 python linear_regression.py
 python linear_regression_feat_eng.py
+python xgboost_model.py
 ```
 
 Plots from EDA and model runs save to `plots/`. README assets are in `assets/`.
@@ -93,7 +144,11 @@ Plots from EDA and model runs save to `plots/`. README assets are in `assets/`.
 
 ## What is next
 
-- Polynomial features
-- Random Forest and Gradient Boosting — this dataset is highly nonlinear
-- Cross-validation instead of a single train-test split
-- Side-by-side model comparison table
+- [x] Linear Regression baseline
+- [x] Feature engineering (`wc_ratio`, `log_age`)
+- [x] XGBoost with hyperparameter tuning
+- [x] Cross-validation (5-fold GridSearchCV)
+- [x] Side-by-side model comparison table
+- [ ] Random Forest for comparison
+- [ ] SHAP values for deeper XGBoost explainability
+- [ ] Polynomial features on linear model
